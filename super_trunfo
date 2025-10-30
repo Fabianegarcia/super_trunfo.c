@@ -1,0 +1,174 @@
+/* super_trunfo.c
+ *
+ * Programa: Comparação de duas cartas do Super Trunfo
+ * Objetivo: Receber dados de duas cartas (pré-definidas), calcular densidade
+ *           populacional e PIB per capita, e comparar um único atributo
+ *           numérico escolhido diretamente no código.
+ *
+ * Como usar:
+ * 1) Altere a constante ATTRIBUTE_TO_COMPARE abaixo para escolher qual
+ *    atributo será usado na comparação. Opções:
+ *      1 -> População
+ *      2 -> Área
+ *      3 -> PIB
+ *      4 -> Densidade Populacional (menor valor vence)
+ *      5 -> PIB per capita
+ *
+ * 2) Compile: gcc -o super_trunfo super_trunfo.c -std=c11
+ * 3) Execute: ./super_trunfo
+ */
+
+#include <stdio.h>
+#include <string.h>
+
+#define ATTRIBUTE_TO_COMPARE 1  /* Mude para 1..5 conforme descrito acima */
+
+#define ATTR_POPULATION 1
+#define ATTR_AREA 2
+#define ATTR_PIB 3
+#define ATTR_DENSITY 4
+#define ATTR_PIB_PER_CAPITA 5
+
+typedef struct {
+    char estado[50];
+    char codigo[20];
+    char nome_cidade[100];
+    long populacao;
+    double area;
+    double pib;
+    int pontos_turisticos;
+    double densidade;
+    double pib_per_capita;
+} Carta;
+
+void calcular_campos_derivados(Carta *c) {
+    if (c->area > 0) c->densidade = (double)c->populacao / c->area;
+    else c->densidade = 0.0;
+    if (c->populacao > 0) c->pib_per_capita = c->pib / (double)c->populacao;
+    else c->pib_per_capita = 0.0;
+}
+
+void imprimir_carta(const Carta *c, int numero) {
+    printf("Carta %d - %s (%s)\n", numero, c->nome_cidade, c->estado);
+    printf("  Código: %s\n", c->codigo);
+    printf("  População: %ld\n", c->populacao);
+    printf("  Área: %.2f km²\n", c->area);
+    printf("  PIB: %.2f\n", c->pib);
+    printf("  Pontos turísticos: %d\n", c->pontos_turisticos);
+    printf("  Densidade populacional: %.4f hab/km²\n", c->densidade);
+    printf("  PIB per capita: %.4f\n", c->pib_per_capita);
+}
+
+const char* nome_atributo(int attr) {
+    switch (attr) {
+        case ATTR_POPULATION: return "População";
+        case ATTR_AREA: return "Área";
+        case ATTR_PIB: return "PIB";
+        case ATTR_DENSITY: return "Densidade Populacional";
+        case ATTR_PIB_PER_CAPITA: return "PIB per capita";
+        default: return "Atributo desconhecido";
+    }
+}
+
+int main(void) {
+    Carta carta1 = {
+        .estado = "SP",
+        .codigo = "C001",
+        .nome_cidade = "São Paulo",
+        .populacao = 12300000,
+        .area = 1521.11,
+        .pib = 700000000000.00,
+        .pontos_turisticos = 50
+    };
+
+    Carta carta2 = {
+        .estado = "RJ",
+        .codigo = "C002",
+        .nome_cidade = "Rio de Janeiro",
+        .populacao = 6748000,
+        .area = 1182.30,
+        .pib = 300000000000.00,
+        .pontos_turisticos = 40
+    };
+
+    calcular_campos_derivados(&carta1);
+    calcular_campos_derivados(&carta2);
+
+    printf("Comparação de cartas (Atributo: %s)\n\n", nome_atributo(ATTRIBUTE_TO_COMPARE));
+    imprimir_carta(&carta1, 1);
+    printf("\n");
+    imprimir_carta(&carta2, 2);
+    printf("\n");
+
+    double valor1 = 0.0, valor2 = 0.0;
+
+    switch (ATTRIBUTE_TO_COMPARE) {
+        case ATTR_POPULATION:
+            valor1 = (double)carta1.populacao;
+            valor2 = (double)carta2.populacao;
+            break;
+        case ATTR_AREA:
+            valor1 = carta1.area;
+            valor2 = carta2.area;
+            break;
+        case ATTR_PIB:
+            valor1 = carta1.pib;
+            valor2 = carta2.pib;
+            break;
+        case ATTR_DENSITY:
+            valor1 = carta1.densidade;
+            valor2 = carta2.densidade;
+            break;
+        case ATTR_PIB_PER_CAPITA:
+            valor1 = carta1.pib_per_capita;
+            valor2 = carta2.pib_per_capita;
+            break;
+        default:
+            printf("Atributo selecionado inválido.\n");
+            return 1;
+    }
+
+    int vencedor = 0;
+
+    if (ATTRIBUTE_TO_COMPARE == ATTR_DENSITY) {
+        if (valor1 < valor2) vencedor = 1;
+        else if (valor2 < valor1) vencedor = 2;
+        else vencedor = 0;
+    } else {
+        if (valor1 > valor2) vencedor = 1;
+        else if (valor2 > valor1) vencedor = 2;
+        else vencedor = 0;
+    }
+
+    printf("Comparação do atributo: %s\n\n", nome_atributo(ATTRIBUTE_TO_COMPARE));
+
+    if (ATTRIBUTE_TO_COMPARE == ATTR_POPULATION)
+        printf("Carta 1 - %s (%s): %ld\nCarta 2 - %s (%s): %ld\n\n",
+            carta1.nome_cidade, carta1.estado, carta1.populacao,
+            carta2.nome_cidade, carta2.estado, carta2.populacao);
+    else if (ATTRIBUTE_TO_COMPARE == ATTR_AREA)
+        printf("Carta 1 - %s (%s): %.2f km²\nCarta 2 - %s (%s): %.2f km²\n\n",
+            carta1.nome_cidade, carta1.estado, carta1.area,
+            carta2.nome_cidade, carta2.estado, carta2.area);
+    else if (ATTRIBUTE_TO_COMPARE == ATTR_PIB)
+        printf("Carta 1 - %s (%s): %.2f\nCarta 2 - %s (%s): %.2f\n\n",
+            carta1.nome_cidade, carta1.estado, carta1.pib,
+            carta2.nome_cidade, carta2.estado, carta2.pib);
+    else if (ATTRIBUTE_TO_COMPARE == ATTR_DENSITY)
+        printf("Carta 1 - %s (%s): %.4f hab/km²\nCarta 2 - %s (%s): %.4f hab/km²\n\n",
+            carta1.nome_cidade, carta1.estado, carta1.densidade,
+            carta2.nome_cidade, carta2.estado, carta2.densidade);
+    else if (ATTRIBUTE_TO_COMPARE == ATTR_PIB_PER_CAPITA)
+        printf("Carta 1 - %s (%s): %.2f\nCarta 2 - %s (%s): %.2f\n\n",
+            carta1.nome_cidade, carta1.estado, carta1.pib_per_capita,
+            carta2.nome_cidade, carta2.estado, carta2.pib_per_capita);
+
+    if (vencedor == 1)
+        printf("Resultado: Carta 1 (%s) venceu!\n", carta1.nome_cidade);
+    else if (vencedor == 2)
+        printf("Resultado: Carta 2 (%s) venceu!\n", carta2.nome_cidade);
+    else
+        printf("Resultado: Empate!\n");
+
+    return 0;
+}
